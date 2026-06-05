@@ -57,13 +57,6 @@ export OTEL_METRICS_EXPORTER=none
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 ```
 
-Then run Prefect normally. For example, start the worker that will execute your
-deployments:
-
-```bash
-prefect worker start --pool my-pool
-```
-
 For a flow run directly from Python, set the same variables before starting the
 process:
 
@@ -83,20 +76,63 @@ with `opentelemetry-instrument`, you can keep that wrapper; this integration
 handles Prefect processes that are started later from the inherited
 environment.
 
-### Deployment Configuration
+### Deployment Job Variables
 
-The key requirement is that both the Prefect plugin setting and the `OTEL_*`
-variables are present in the environment of the process that imports Prefect
-and runs your flow code.
+For deployments, set these variables in `job_variables.env` so the process that
+runs your flow receives them:
+
+```yaml
+deployments:
+- name: my-deployment
+  entrypoint: flows.py:my_flow
+  work_pool:
+    name: my-pool
+    job_variables:
+      env:
+        PREFECT_PLUGINS_ENABLED: "1"
+        OTEL_SERVICE_NAME: "my-prefect-flow"
+        OTEL_TRACES_EXPORTER: "otlp"
+        OTEL_METRICS_EXPORTER: "none"
+        OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+```
+
+If you create deployments from Python, pass the same environment variables in
+`job_variables`:
+
+```python
+from prefect import flow
+
+
+@flow
+def my_flow() -> None:
+    ...
+
+
+if __name__ == "__main__":
+    my_flow.deploy(
+        name="my-deployment",
+        work_pool_name="my-pool",
+        job_variables={
+            "env": {
+                "PREFECT_PLUGINS_ENABLED": "1",
+                "OTEL_SERVICE_NAME": "my-prefect-flow",
+                "OTEL_TRACES_EXPORTER": "otlp",
+                "OTEL_METRICS_EXPORTER": "none",
+                "OTEL_EXPORTER_OTLP_ENDPOINT": "http://otel-collector:4317",
+            }
+        },
+    )
+```
+
+These examples configure OTLP trace export and disable metric export. Adjust the
+`OTEL_*` values for your collector, exporter, and telemetry pipeline.
 
 Common places to set them:
 
-- The worker process environment for local and process-based workers.
-- Work pool job variables for infrastructure-backed deployments.
+- Deployment `job_variables.env`.
+- Work pool default job variables.
 - Container image entrypoints or Kubernetes, Docker, ECS, Cloud Run, or other
   job environment settings.
-- Deployment environment overrides when your deployment infrastructure supports
-  them.
 
 For a container image, install the package and OpenTelemetry instrumentation in
 the image that will run flows:
@@ -108,16 +144,9 @@ RUN pip install prefect-otel \
     && opentelemetry-bootstrap -a install
 ```
 
-Then provide runtime configuration through your work pool, deployment, or
-platform environment:
-
-```bash
-PREFECT_PLUGINS_ENABLED=1
-OTEL_SERVICE_NAME=my-prefect-flow
-OTEL_TRACES_EXPORTER=otlp
-OTEL_METRICS_EXPORTER=none
-OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-```
+The image installs the package and instrumentation libraries. The deployment
+or work pool still needs the `job_variables.env` values shown above so the
+flow process can configure OpenTelemetry at runtime.
 
 ### Disable Auto-Instrumentation
 
