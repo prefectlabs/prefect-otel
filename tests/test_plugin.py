@@ -67,16 +67,17 @@ def test_disabled_setting_does_not_import_opentelemetry(
             raise AssertionError("OpenTelemetry should not be imported")
         return original_import(name, *args, **kwargs)
 
+    monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", "false")
     monkeypatch.setattr(builtins, "__import__", guarded_import)
 
     assert setup_environment(ctx=hook_context) is None
 
 
-def test_enabled_setting_initializes_opentelemetry(
+def test_default_setting_initializes_opentelemetry(
     hook_context: HookContext,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Enabled auto-instrumentation should call OpenTelemetry initialize."""
+    """Default auto-instrumentation should call OpenTelemetry initialize."""
 
     class ProxyTracerProvider:
         pass
@@ -86,7 +87,6 @@ def test_enabled_setting_initializes_opentelemetry(
     def initialize() -> None:
         calls.append("called")
 
-    monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", "true")
     _install_fake_opentelemetry(
         monkeypatch,
         provider=ProxyTracerProvider(),
@@ -114,7 +114,6 @@ def test_already_configured_provider_skips_initialization(
     def initialize() -> None:
         calls.append("called")
 
-    monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", "true")
     _install_fake_opentelemetry(
         monkeypatch,
         provider=TracerProvider(),
@@ -141,7 +140,6 @@ def test_optional_initialization_failure_logs_and_continues(
     def initialize() -> None:
         raise RuntimeError("bootstrap failed")
 
-    monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", "true")
     _install_fake_opentelemetry(
         monkeypatch,
         provider=ProxyTracerProvider(),
@@ -167,7 +165,6 @@ def test_required_initialization_failure_raises(
     def initialize() -> None:
         raise RuntimeError("bootstrap failed")
 
-    monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", "true")
     monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_REQUIRE_AUTO_INSTRUMENT", "true")
     _install_fake_opentelemetry(
         monkeypatch,
@@ -192,7 +189,6 @@ def test_optional_import_failure_logs_and_continues(
             raise ImportError("opentelemetry is missing")
         return original_import(name, *args, **kwargs)
 
-    monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", "true")
     monkeypatch.setattr(builtins, "__import__", guarded_import)
 
     with caplog.at_level(logging.ERROR):
@@ -216,7 +212,6 @@ def test_required_import_failure_raises(
             raise ImportError("opentelemetry is missing")
         return original_import(name, *args, **kwargs)
 
-    monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", "true")
     monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_REQUIRE_AUTO_INSTRUMENT", "true")
     monkeypatch.setattr(builtins, "__import__", guarded_import)
 

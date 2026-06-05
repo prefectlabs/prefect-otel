@@ -148,7 +148,7 @@ def _run_spawn_driver(
     )
     if enable_plugin:
         env["PREFECT_PLUGINS_ENABLED"] = "1"
-        env["PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT"] = "true"
+        env.pop("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", None)
     else:
         env["PREFECT_PLUGINS_ENABLED"] = "0"
         env.pop("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", None)

@@ -12,10 +12,11 @@ class PrefectOtelSettings(PrefectBaseSettings):
     model_config = build_settings_config(("integrations", "otel"))
 
     auto_instrument: bool = Field(
-        default=False,
+        default=True,
         description=(
             "Whether the Prefect OpenTelemetry integration should bootstrap "
-            "OpenTelemetry auto-instrumentation when Prefect imports."
+            "OpenTelemetry auto-instrumentation when Prefect imports. Set to "
+            "false to disable auto-instrumentation."
         ),
     )
 

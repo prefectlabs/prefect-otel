@@ -8,31 +8,31 @@ from pathlib import Path
 from prefect_opentelemetry.settings import PrefectOtelSettings
 
 
-def test_default_settings_disable_auto_instrumentation() -> None:
-    """Defaults should be opt-in."""
+def test_default_settings_enable_auto_instrumentation() -> None:
+    """Defaults should auto-instrument unless users opt out."""
     settings = PrefectOtelSettings()
 
-    assert settings.auto_instrument is False
+    assert settings.auto_instrument is True
     assert settings.require_auto_instrument is False
 
 
-def test_set_values_via_environment_variables(
+def test_opt_out_via_environment_variables(
     monkeypatch: object,
 ) -> None:
     """Settings should load from Prefect integration env vars."""
     from pytest import MonkeyPatch
 
     assert isinstance(monkeypatch, MonkeyPatch)
-    monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", "true")
+    monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT", "false")
     monkeypatch.setenv("PREFECT_INTEGRATIONS_OTEL_REQUIRE_AUTO_INSTRUMENT", "true")
 
     settings = PrefectOtelSettings()
 
-    assert settings.auto_instrument is True
+    assert settings.auto_instrument is False
     assert settings.require_auto_instrument is True
 
 
-def test_set_values_via_dot_env_file(
+def test_opt_out_via_dot_env_file(
     tmp_path: Path,
     monkeypatch: object,
 ) -> None:
@@ -41,18 +41,18 @@ def test_set_values_via_dot_env_file(
 
     assert isinstance(monkeypatch, MonkeyPatch)
     (tmp_path / ".env").write_text(
-        "PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT=true\n"
+        "PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT=false\n"
         "PREFECT_INTEGRATIONS_OTEL_REQUIRE_AUTO_INSTRUMENT=true\n"
     )
     monkeypatch.chdir(tmp_path)
 
     settings = PrefectOtelSettings()
 
-    assert settings.auto_instrument is True
+    assert settings.auto_instrument is False
     assert settings.require_auto_instrument is True
 
 
-def test_set_values_via_prefect_toml_file(
+def test_opt_out_via_prefect_toml_file(
     tmp_path: Path,
     monkeypatch: object,
 ) -> None:
@@ -61,17 +61,17 @@ def test_set_values_via_prefect_toml_file(
 
     assert isinstance(monkeypatch, MonkeyPatch)
     (tmp_path / "prefect.toml").write_text(
-        "[integrations.otel]\nauto_instrument = true\nrequire_auto_instrument = true\n"
+        "[integrations.otel]\nauto_instrument = false\nrequire_auto_instrument = true\n"
     )
     monkeypatch.chdir(tmp_path)
 
     settings = PrefectOtelSettings()
 
-    assert settings.auto_instrument is True
+    assert settings.auto_instrument is False
     assert settings.require_auto_instrument is True
 
 
-def test_set_values_via_pyproject_toml_file(
+def test_opt_out_via_pyproject_toml_file(
     tmp_path: Path,
     monkeypatch: object,
 ) -> None:
@@ -81,14 +81,14 @@ def test_set_values_via_pyproject_toml_file(
     assert isinstance(monkeypatch, MonkeyPatch)
     (tmp_path / "pyproject.toml").write_text(
         "[tool.prefect.integrations.otel]\n"
-        "auto_instrument = true\n"
+        "auto_instrument = false\n"
         "require_auto_instrument = true\n"
     )
     monkeypatch.chdir(tmp_path)
 
     settings = PrefectOtelSettings()
 
-    assert settings.auto_instrument is True
+    assert settings.auto_instrument is False
     assert settings.require_auto_instrument is True
 
 

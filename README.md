@@ -32,12 +32,13 @@ Install `prefect-otel` in the environment that runs your Prefect flows. For
 deployed flows, this usually means the worker image, job image, virtual
 environment, or infrastructure block used by the deployment.
 
-Enable Prefect plugins and opt in to this integration where your flow code runs:
+Enable Prefect plugins where your flow code runs:
 
 ```bash
 export PREFECT_PLUGINS_ENABLED=1
-export PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT=true
 ```
+
+Once Prefect loads this plugin, auto-instrumentation is enabled by default.
 
 Configure OpenTelemetry with standard `OTEL_*` environment variables:
 
@@ -65,12 +66,17 @@ If you already wrap the worker or application entrypoint with
 Prefect processes that are started later and need to configure OpenTelemetry
 from the inherited environment.
 
-The plugin runs when Prefect is imported. When
-`PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT=true`, it calls OpenTelemetry's
+The plugin runs when Prefect is imported. By default, it calls OpenTelemetry's
 programmatic auto-instrumentation initializer in each Prefect process. This
 allows spawned flow-run subprocesses to configure OpenTelemetry from inherited
 `OTEL_*` variables even though the parent process's in-memory SDK setup is not
 inherited across Python `spawn`.
+
+To disable this integration without uninstalling it, set:
+
+```bash
+export PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT=false
+```
 
 ## Settings
 
@@ -79,14 +85,14 @@ with environment variables, `.env`, `prefect.toml`, or `pyproject.toml`.
 
 | Setting | Environment variable | Default |
 | --- | --- | --- |
-| `auto_instrument` | `PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT` | `false` |
+| `auto_instrument` | `PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT` | `true` |
 | `require_auto_instrument` | `PREFECT_INTEGRATIONS_OTEL_REQUIRE_AUTO_INSTRUMENT` | `false` |
 
 `prefect.toml`:
 
 ```toml
 [integrations.otel]
-auto_instrument = true
+auto_instrument = false
 require_auto_instrument = false
 ```
 
@@ -94,7 +100,7 @@ require_auto_instrument = false
 
 ```toml
 [tool.prefect.integrations.otel]
-auto_instrument = true
+auto_instrument = false
 require_auto_instrument = false
 ```
 
