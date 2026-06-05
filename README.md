@@ -28,7 +28,11 @@ opentelemetry-bootstrap -a install
 
 ## Usage
 
-Enable Prefect plugins and opt in to this integration:
+Install `prefect-otel` in the environment that runs your Prefect flows. For
+deployed flows, this usually means the worker image, job image, virtual
+environment, or infrastructure block used by the deployment.
+
+Enable Prefect plugins and opt in to this integration where your flow code runs:
 
 ```bash
 export PREFECT_PLUGINS_ENABLED=1
@@ -44,12 +48,22 @@ export OTEL_METRICS_EXPORTER=none
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 ```
 
-Then start Prefect flow execution normally, including through a work pool
-command that is wrapped with `opentelemetry-instrument`:
+For deployments, put these variables wherever the flow-run process receives its
+environment, such as work pool job variables, infrastructure block settings,
+deployment environment overrides, a container image entrypoint, or the worker
+process environment.
+
+Then run Prefect normally. For example, start the worker for the work pool that
+will execute your deployments:
 
 ```bash
-opentelemetry-instrument prefect flow-run execute
+prefect worker start --pool my-pool
 ```
+
+If you already wrap the worker or application entrypoint with
+`opentelemetry-instrument`, keep that wrapper in place. This integration handles
+Prefect processes that are started later and need to configure OpenTelemetry
+from the inherited environment.
 
 The plugin runs when Prefect is imported. When
 `PREFECT_INTEGRATIONS_OTEL_AUTO_INSTRUMENT=true`, it calls OpenTelemetry's
@@ -95,4 +109,3 @@ Prefect can show plugin discovery and hook results:
 ```bash
 prefect plugins diagnose
 ```
-
