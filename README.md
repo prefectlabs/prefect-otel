@@ -8,7 +8,7 @@ Python auto-instrumentation in Prefect flow-run subprocesses.
 ## Experimental Status
 
 This package is experimental. Public settings, behavior, and compatibility
-guarantees may change before a 1.0 release.
+guarantees may change in breaking ways at any time.
 
 ## Installation
 
