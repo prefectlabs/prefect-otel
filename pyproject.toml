@@ -1,0 +1,103 @@
+[build-system]
+requires = ["setuptools>=77", "setuptools-scm>=8", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prefect-otel"
+description = "Experimental Prefect integration for OpenTelemetry auto-instrumentation."
+readme = "README.md"
+requires-python = ">=3.10,<3.15"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+keywords = ["prefect", "opentelemetry", "otel"]
+authors = [{ name = "Prefect Technologies, Inc.", email = "help@prefect.io" }]
+classifiers = [
+  "Natural Language :: English",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+  "prefect>=3.7.0",
+  "opentelemetry-distro>=0.48b0,<1.0.0",
+  "opentelemetry-exporter-otlp>=1.27.0,<2.0.0",
+  "opentelemetry-instrumentation>=0.48b0,<1.0.0",
+]
+dynamic = ["version"]
+
+[dependency-groups]
+dev = [
+  "coverage[toml]",
+  "interrogate",
+  "mypy==1.19.1",
+  "pytest>=8.4.2",
+  "pytest-asyncio",
+  "pytest-env",
+  "pytest-timeout",
+  "ruff==0.15.15",
+]
+
+[project.urls]
+Homepage = "https://github.com/prefectlabs/prefect-otel"
+Source = "https://github.com/prefectlabs/prefect-otel"
+Tracker = "https://github.com/prefectlabs/prefect-otel/issues"
+
+[project.entry-points."prefect.plugins"]
+prefect_otel = "prefect_opentelemetry"
+
+[tool.setuptools]
+packages = ["prefect_opentelemetry"]
+
+[tool.setuptools.package-data]
+prefect_opentelemetry = ["py.typed"]
+
+[tool.setuptools_scm]
+tag_regex = "^prefect-otel-(?P<version>\\d+\\.\\d+\\.\\d+(?:[a-zA-Z0-9]+(?:\\.[a-zA-Z0-9]+)*)?)$"
+fallback_version = "0.1.0"
+git_describe_command = 'git describe --dirty --tags --long --match "prefect-otel-*[0-9]*"'
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_default_fixture_loop_scope = "session"
+asyncio_mode = "auto"
+timeout = 90
+env = ["PREFECT_TEST_MODE=1"]
+
+[tool.coverage.run]
+branch = true
+source = ["prefect_opentelemetry"]
+omit = ["tests/*", "prefect_opentelemetry/_version.py"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+
+[tool.interrogate]
+ignore-init-module = true
+ignore_init_method = true
+exclude = ["tests"]
+fail-under = 95
+omit-covered-files = true
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+strict = true
+
+[tool.ruff]
+src = ["prefect_opentelemetry", "tests"]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.uv]
+required-version = ">=0.6.15"
